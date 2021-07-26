@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>HitTheMole</title>
+
+    <style>
+        body {
+            text-align: center;
+            background-image: url('img/background1.png');
+            background-size: cover;
+        }
+
+        .status {
+            position: absolute;
+            left: 40px;
+            font-size: 30px;
+        }
+        #hit {
+            top: 40px;
+        }
+        #miss {
+            top: 70px;
+        }
+        #bestScore {
+            top: 100px;
+            display: none;
+        }
+
+        .headline {
+            font-size: 50px;
+            letter-spacing: 2px;
+            color: #8B0000;
+            font-family: "Comic Sans MS", cursive, sans-serif;
+        }
+
+        #menu {
+            display: inline-block;
+            text-align: left;
+            font-size: 18px;
+        }
+        .radioTitle {
+            color: #2F4F4F;
+            font-size: 25px;
+        }
+        #start {
+            border: 1px solid black;
+            width: 170px;
+            height: 40px;
+            border-radius: 50%;
+            position: relative;
+            top: 100px;
+        }
+        td {
+            padding: 0px;
+            border: 1px solid black;
+            box-shadow: 1px 2px 3px;
+            vertical-align: central;
+            align-content: center;
+            width: 60px;
+            height: 20px;
+            border-radius: 50%;
+            position: relative;
+        }
+        table {
+            position: relative;
+            margin: auto;
+        }
+
+        #moleImg {
+            width: 55px;
+            height: 55px;
+            position: absolute;
+            bottom: 4px;
+            right: 2px;
+        }
+
+        #gameOverImg {
+            padding-top: 40px;
+            height: 100px;
+            width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var body = document.getElementsByTagName('body')[0];
+        var hitsNum = 0, missNum = 0, bestScore_arr = [0, 0, 0], difficulty_index;
+        var moleImg = document.createElement('img');
+        moleImg.id = "moleImg";
+
+        function startGame() {
+
+            var difficulty_arr = document.getElementsByClassName("difficulty");
+            var design_arr = document.getElementsByClassName("design");
+            for (var i = 0; i < difficulty_arr.length; i++) {
+                if (difficulty_arr[i].checked) {
+                    difficulty_index = i;
+                    buildBoard(difficulty_arr[i].value);
+                }
+            }
+            for (var i = 0; i < design_arr.length; i++) {
+                if (design_arr[i].checked)
+                    designBoard(i);
+            }
+        }
+
+        function buildBoard(boardSize) {
+            document.getElementById("menu").style.display = "none";
+            document.getElementById("bestScore").style.display = "inline-block";
+            document.getElementById("bestScore").innerHTML = 'best score: ' + bestScore_arr[difficulty_index];
+
+            var table = document.createElement('table');
+            table.style.bottom = (200 - 20 * boardSize) + "px";
+            table.style.borderSpacing = (75 - 5 * boardSize) + "px";
+
+            for (var i = 0; i < boardSize; i++) {
+                var tr = document.createElement('TR');
+                tr.className = "tr";
+                table.appendChild(tr);
+                for (var j = 0; j < boardSize; j++) {
+                    var td = document.createElement('TD');
+                    td.className = "td";
+                    tr.appendChild(td);
+                }
+            }
+            table.appendChild(tr);
+            var table_div = document.createElement('div');
+            table_div.id = 'table_div';
+            table_div.style.width = '99%';
+            table_div.style.position = 'absolute';
+            table_div.style.bottom = "0px";
+            table_div.appendChild(table);
+            body.appendChild(table_div);
+        }
+
+        function designBoard(index) {
+            tr_arr = document.getElementsByClassName("tr");
+            td_arr = document.getElementsByClassName("td");
+            switch (index) {
+                case 0:
+                    break;
+                case 1:
+                    for (var i = 0; i < tr_arr.length; i++) {
+                        tr_arr[i].style.backgroundColor = "#8b624c";
+                    }
+                    break;
+                case 2:
+                    tr_arr_len = tr_arr.length;
+                    td_arr_len = td_arr.length;
+                    for (var i = 0; i < td_arr_len; i++) {
+                        if (((i % tr_arr_len) + (Math.floor(i / tr_arr_len))) % 2 == 0)
+                            td_arr[i].style.backgroundColor = "#8b624c";
+                        else
+                            td_arr[i].style.backgroundColor = "#696969";
+                    }
+                    break;
+            }
+            newMole();
+        }
+
+        function newMole() {
+            td_arr = document.getElementsByClassName("td");
+            var index = (Math.floor(Math.random() * td_arr.length));
+            moleImg.src = "img/start_mole1.png";
+            td_arr[index].appendChild(moleImg);
+            td_arr[index].addEventListener("click", moleClicked);
+            var isClicked = 0;
+            setTimeout(clearMole, Math.floor((Math.random() * 500) + 1000));
+
+            function moleClicked() {
+                isClicked = 1;
+                td_arr[index].removeEventListener("click", moleClicked);
+                hitsNum++;
+                document.getElementById("hit").innerHTML = 'hits: ' + hitsNum;
+                if (bestScore_arr[difficulty_index] < hitsNum) {
+                    bestScore_arr[difficulty_index] = hitsNum;
+                    document.getElementById("bestScore").innerHTML = 'best score: ' + bestScore_arr[difficulty_index];
+                }
+                moleImg.src = "img/end_mole1.png";
+            }
+
+            function clearMole() {
+                td_arr[index].removeChild(moleImg);
+                if (!isClicked) {
+                    missNum++;
+                    document.getElementById("miss").innerHTML = 'misses: ' + missNum + '/3';
+                    if (missNum == 3) {
+                        document.getElementById("gameOver").style.display = "inline-block";    /* show game over icon and wait for click */
+                        return;
+                    }
+                }
+                setTimeout(newMole, Math.floor((Math.random() * 1000) + 250));
+            }
+        }
+
+        function endgame() {
+            hitsNum = 0;
+            missNum = 0;
+            document.getElementById("menu").style.display = "inline-block";
+            document.getElementById("bestScore").style.display = "none";
+            document.getElementById("gameOver").style.display = "none";
+            document.getElementById("hit").innerHTML = 'hits: ' + hitsNum;
+            document.getElementById("miss").innerHTML = 'misses: ' + missNum + '/3';
+            body.removeChild(table_div);
+        }
+    </script>
+
+    <div class="status" id="hit">
+        hits: 0
+    </div>
+    <div class="status" id="miss">
+        misses: 0/3
+    </div>
+    <div class="status" id="bestScore">
+        best score: 0
+    </div>
+
+    <span class="headline">hit the mole</span>
+    <br />
+
+    <div id="menu">
+        <span class="radioTitle">choose difficulty</span>
+        <br />
+        <input value=3 class="difficulty" type="radio" name="difficulty" />easy
+        <br />
+        <input value=5 class="difficulty" type="radio" name="difficulty" checked />normal
+        <br />
+        <input value=10 class="difficulty" type="radio" name="difficulty" />hard
+        <br />
+        <span class="radioTitle">choose a design</span>
+        <br />
+        <input class="design" type="radio" name="design" />low
+        <br />
+        <input class="design" type="radio" name="design" checked />basic
+        <br />
+        <input class="design" type="radio" name="design" />luxurious
+        <br />
+        <input id="start" type="button" value="start game" onclick="startGame()" />
+        <br />
+    </div>
+
+    <div id="gameOver" style="display:none">
+        <img id="gameOverImg" src="img/game_over1.png" />
+        <br />
+        <input type="button" value="play again" onclick="endgame()" />
+    </div>
+
+</body>
+</html>
